@@ -13,6 +13,7 @@ function Square({ value, onSquareClick }) {
 function Board({xIsNext, squares, onPlay}) {
   function handleClick(i) {
     if(squares[i] || calculateWinner(squares)){
+      // that move has previously been done or winner
       return
     }
     const nextSquares = squares.slice();
@@ -55,20 +56,24 @@ function Board({xIsNext, squares, onPlay}) {
 }
 
 export default function Game(){
-  const [xIsNext, setXIsNext] = useState(true)
   const [history, setHistory] = useState([Array(9).fill(null)])
-  const currentSquares = history[history.length - 1];
   const [currentMove, setCurrentMove] = useState(0);
+  const currentSquares = history[currentMove];
+  const xIsNext = currentMove%2 === 0
 
   function handlePlay(nextSquares){
-    setHistory([...history, nextSquares])
-    setXIsNext(!xIsNext)
+    // history consists of all moves up till the current move 
+    // this is important for jumping back in time and making new moves
+    const nextHistory = [...history.slice(0,currentMove+1), nextSquares]
+    setHistory(nextHistory)
+    setCurrentMove(nextHistory.length-1)
+    // toggle the current player
   }
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
-    setXIsNext(nextMove % 2 === 0);
   }
 
+  // subcomponent within game
   const moves = history.map((squares, move) => {
     let description;
     if(move>0){
@@ -81,10 +86,9 @@ export default function Game(){
         <button onClick={()=> jumpTo(move)}>{description}</button>
       </li>
     )
-
   })
 
-
+  // main component for game
   return(
     <div className="game">
       <div className="game-board">
@@ -92,12 +96,7 @@ export default function Game(){
       </div>
       <div className="game-info">
         <ol>
-          {
-          
           {moves}
-          
-          
-          }
         </ol>
       </div>
     </div>
